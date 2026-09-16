@@ -1,0 +1,243 @@
+
+==============================================================================
+1. LOADING
+==============================================================================
+File           : data/raw/big_startup_secsees_dataset.csv
+Rows           : 66,368
+Columns        : 14
+Memory (approx): 51.8 MB
+
+==============================================================================
+2. COLUMN INVENTORY
+==============================================================================
+                   dtype  non_null  null_count  null_pct  n_unique
+permalink            str     66368           0      0.00     66368
+name                 str     66367           1      0.00     66102
+homepage_url         str     61310        5058      7.62     61191
+category_list        str     63220        3148      4.74     27296
+funding_total_usd    str     66368           0      0.00     18896
+status               str     66368           0      0.00         4
+country_code         str     59410        6958     10.48       137
+state_code           str     57821        8547     12.88       311
+region               str     58338        8030     12.10      1092
+city                 str     58340        8028     12.10      5111
+funding_rounds     int64     66368           0      0.00        19
+founded_at           str     51147       15221     22.93      3978
+first_funding_at     str     66344          24      0.04      4817
+last_funding_at      str     66368           0      0.00      4518
+
+==============================================================================
+3. SAMPLE ROWS
+==============================================================================
+                             permalink                    name                       homepage_url                                         category_list funding_total_usd     status country_code state_code                 region           city  funding_rounds  founded_at first_funding_at last_funding_at
+0                  /organization/-fame                   #fame                 http://livfame.com                                                 Media          10000000  operating          IND         16                 Mumbai         Mumbai               1         NaN       2015-01-05      2015-01-05
+1               /organization/-qounter                :Qounter             http://www.qounter.com  Application Platforms|Real Time|Social Network Media            700000  operating          USA         DE             DE - Other  Delaware City               2  2014-09-04       2014-03-01      2014-10-14
+2  /organization/-the-one-of-them-inc-  (THE) ONE of THEM,Inc.                http://oneofthem.jp                                     Apps|Games|Mobile           3406878  operating          NaN        NaN                    NaN            NaN               1         NaN       2014-01-30      2014-01-30
+3                /organization/0-6-com                 0-6.com                 http://www.0-6.com                                           Curated Web           2000000  operating          CHN         22                Beijing        Beijing               1  2007-01-01       2008-03-19      2008-03-19
+4       /organization/004-technologies        004 Technologies  http://004gmbh.de/en/004-interact                                              Software                 -  operating          USA         IL  Springfield, Illinois      Champaign               1  2010-01-01       2014-07-24      2014-07-24
+
+==============================================================================
+4. DETECTED KEY COLUMNS
+==============================================================================
+  [OK  ] company name     -> name
+  [OK  ] unique id        -> permalink
+  [OK  ] status/label     -> status
+  [OK  ] total funding    -> funding_total_usd
+  [OK  ] funding rounds   -> funding_rounds
+  [OK  ] founded date     -> founded_at
+  [OK  ] first funding    -> first_funding_at
+  [OK  ] last funding     -> last_funding_at
+  [OK  ] category         -> category_list
+  [OK  ] country          -> country_code
+
+==============================================================================
+5. STATUS DISTRIBUTION  (drives label design)
+==============================================================================
+           count    pct
+status                 
+operating  53034  79.91
+closed      6238   9.40
+acquired    5549   8.36
+ipo         1547   2.33
+
+  After dropping acquired/ipo/null:
+    closed    (label 0): 6,238  (10.52%)
+    operating (label 1): 53,034  (89.48%)
+    usable rows        : 59,272
+    imbalance ratio    : 1 : 8.5
+
+==============================================================================
+6. FUNDING COLUMN
+==============================================================================
+  Raw dtype: str
+  Sample raw values: ['10000000', '700000', '3406878', '2000000', '-']
+
+  Parsed as numeric:
+    parse failures/nulls : 12,785 (19.3%)
+    zero-funding rows    : 0
+    min / median / max   : 1 / 2,000,000 / 30,079,503,000
+
+  Percentiles:
+    p10 :             56,360
+    p25 :            335,624
+    p50 :          2,000,000
+    p75 :         10,000,000
+    p90 :         35,000,000
+    p99 :        225,081,113
+
+  Funding rounds distribution:
+funding_rounds
+1     42472
+2     12353
+3      5606
+4      2739
+5      1468
+6       774
+7       418
+8       214
+9       126
+10       79
+11       51
+12       28
+13       15
+14        6
+15        6
+
+==============================================================================
+7. DATE COLUMNS  (temporal experiment feasibility)
+==============================================================================
+
+  founded_at
+    parseable    : 51,147 / 66,368 (77.1%)
+    range        : 1015-01-30 .. 2914-01-01
+    before 2013  : 38,340
+    year counts (top 10):
+founded_at
+2011.0    5624
+2012.0    6425
+2013.0    6259
+2014.0    4964
+2015.0    1578
+2016.0       2
+2041.0       1
+2104.0       1
+2105.0       1
+2914.0       1
+
+  first_funding_at
+    parseable    : 66,344 / 66,368 (100.0%)
+    range        : 1014-03-01 .. 2015-12-05
+    before 2013  : 36,282
+    year counts (top 10):
+first_funding_at
+2006.0     2041
+2007.0     2986
+2008.0     2911
+2009.0     3970
+2010.0     5022
+2011.0     6249
+2012.0     7625
+2013.0     9980
+2014.0    11846
+2015.0     8236
+
+  last_funding_at
+    parseable    : 66,368 / 66,368 (100.0%)
+    range        : 1971-01-01 .. 2115-12-01
+    before 2013  : 27,438
+    year counts (top 10):
+last_funding_at
+2008     2271
+2009     2916
+2010     3983
+2011     5088
+2012     6380
+2013     9495
+2014    14574
+2015    14859
+2105        1
+2115        1
+
+==============================================================================
+8. TEMPORAL CUTOFF VIABILITY  (cutoff T = 2013-01-01)
+==============================================================================
+  Rows surviving all temporal filters: 22,120
+
+  Label balance within eligible subset:
+status
+operating    19215
+closed        2905
+
+  => This is your realistic modelling population.
+
+==============================================================================
+9. DUPLICATES
+==============================================================================
+  Fully identical rows: 0
+  Duplicate 'permalink': 0
+  Duplicate names (case-insensitive): 330
+
+  Most repeated names:
+name
+blink     4
+karma     4
+kiwi      4
+spire     4
+roost     4
+peach     4
+shift     4
+bundle    3
+gather    3
+chime     3
+
+==============================================================================
+10. COMPANY NAME AMBIGUITY  (news-matching risk)
+==============================================================================
+  Single-word names : 37,889 (57.1%)  <- high false-match risk
+  Names <= 4 chars  : 1,889 (2.8%)  <- very high risk
+  Median name length: 10 chars
+
+  Examples of risky short names:
+    ['1248', '12cm', '1417', '1871', '1bib', '1Lay', '1SDK', '20n', '24i', '24me', '2C2P', '2can', '2d2c', '2mee', '2sms', '360T', '36Kr', '3CI', '3DC', '3dim']
+
+==============================================================================
+11. CATEGORY & COUNTRY (categorical feature planning)
+==============================================================================
+  'category_list' distinct values: 27,296
+  Top 15:
+category_list
+Software               3995
+Biotechnology          3615
+E-Commerce             1332
+Mobile                 1177
+Clean Technology       1133
+Curated Web            1050
+Hardware + Software     932
+Health Care             930
+Games                   862
+Enterprise Software     845
+Manufacturing           773
+Health and Wellness     770
+Advertising             700
+Education               585
+Semiconductors          501
+
+  'country_code' distinct values: 137
+  Top 10:
+country_code
+USA    37601
+GBR     3688
+CAN     1925
+IND     1596
+CHN     1544
+FRA     1135
+DEU     1082
+ISR      965
+ESP      746
+AUS      503
+
+==============================================================================
+INSPECTION COMPLETE
+==============================================================================
+Send the full output back so we can finalise Phase 2.
+

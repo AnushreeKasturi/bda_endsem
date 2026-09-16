@@ -1,0 +1,29 @@
+# Data (never commit raw datasets - see data/raw/README.md)
+data/raw/*
+!data/raw/README.md
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Scala / sbt
+target/
+project/target/
+project/project/
+.bloop/
+.metals/
+.bsp/
+
+# Spark
+spark-warehouse/
+metastore_db/
+derby.log
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store

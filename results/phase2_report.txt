@@ -1,0 +1,74 @@
+
+==============================================================================
+PHASE 2 - LABEL DESIGN & PREDICTION CUTOFF
+==============================================================================
+Input  : data/raw/big_startup_secsees_dataset.csv
+Output : data/processed/labeled_eligible_startups.csv
+Cutoff : T = 2013-01-01
+Valid date window: [1950-01-01, 2016-12-31]
+
+==============================================================================
+STEP 1 - RAW LOAD
+==============================================================================
+Rows loaded: 66,368
+
+==============================================================================
+STEP 2 - DEDUPLICATION KEY (R5)
+==============================================================================
+Duplicate 'permalink' values: 0
+None found - permalink confirmed usable as unique key.
+
+==============================================================================
+STEP 3 - DATE VALIDITY CLEANING (R3)
+==============================================================================
+founded_at        : 239 corrupted values -> nulled
+first_funding_at  : 3 corrupted values -> nulled
+last_funding_at   : 2 corrupted values -> nulled
+
+==============================================================================
+STEP 4 - STATUS -> LABEL MAPPING (R2)
+==============================================================================
+Raw status distribution:
+status
+operating    53034
+closed        6238
+acquired      5549
+ipo           1547
+
+Excluded (acquired / ipo / null / other): 7,096
+Retained (closed=0 or operating=1)      : 59,272
+
+==============================================================================
+STEP 5 - TEMPORAL ELIGIBILITY FILTER (R4, cutoff T)
+==============================================================================
+Rows with valid status (0/1)              : 59,272
+  ... with founded_at < T                 : 32,801
+  ... with first_funding_at < T           : 30,073
+  ... satisfying BOTH (eligible)          : 22,075
+
+last_funding_at nulled as post-cutoff/unknown-at-T (feature-only, row retained): 6,911 (31.3% of eligible rows)
+
+==============================================================================
+STEP 6 - FINAL ELIGIBLE POPULATION
+==============================================================================
+Eligible rows total : 22,075
+  closed    (0)     : 2,902  (13.15%)
+  operating (1)     : 19,173  (86.85%)
+  imbalance ratio   : 1 : 6.61
+
+==============================================================================
+STEP 7 - WRITING OUTPUT
+==============================================================================
+Wrote 22,075 rows x 15 columns to:
+  data/processed/labeled_eligible_startups.csv
+
+==============================================================================
+PHASE 2 COMPLETE
+==============================================================================
+Summary for docs/PHASE02_labels_and_cutoff.md / report:
+  Raw rows                    : 66,368
+  After dedup on permalink    : 66,368
+  After status filter (0/1)   : 59,272
+  After temporal cutoff (R4)  : 22,075
+  Final label balance         : 2,902 closed / 19,173 operating
+
