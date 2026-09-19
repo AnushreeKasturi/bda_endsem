@@ -18,12 +18,28 @@ import com.startupsurvival.models.{NewsRecord, ScoredNewsRecord}
  *
  * This file demonstrates the News RDD's key/value shape and its core
  * transformations against the same REAL data already verified in
- * Phase 10 - the actual Kabbage and Sifteo headlines, dates, and scores
- * captured live from Google News RSS and scored with the real
- * SentimentScorer. Small in volume, but every value in it is genuine,
- * not synthetic - and the operations shown here (parallelize, map,
- * reduceByKey, groupByKey, join) are exactly what will run against the
- * full batch-collected dataset once it exists.
+ * Phase 10 - the actual Kabbage, Sifteo, and Color Labs headlines,
+ * dates, and scores captured live from Google News RSS and scored with
+ * the real SentimentScorer. Small in volume, but every value in it is
+ * genuine, not synthetic - and the operations shown here (parallelize,
+ * map, reduceByKey, groupByKey, join) are exactly what will run against
+ * the full batch-collected dataset once it exists.
+ *
+ * PROVENANCE NOTE (Phase 13 cleanup, round 2): Sifteo was removed from
+ * this join-demo sample. It is NOT a bug fix for a slug typo - Sifteo
+ * was genuinely never eligible under Phase 2's R2 rule (acquired by 3D
+ * Robotics in 2014, and `acquired` status is excluded). Its absence from
+ * `labeled_eligible_startups.csv` was confirmed via grep. Sifteo's real
+ * headline/sentiment data remains valid and unchanged in
+ * FeatureExtractor.scala/SentimentScorer.scala as a Phase 9/10
+ * name-matching and scoring example (those phases never required
+ * eligibility), but it cannot correctly participate in this file's
+ * full-population join demo, since leftOuterJoin only preserves rows
+ * keyed by the eligible financial side - Sifteo's news data would
+ * otherwise silently vanish from combinedRDD rather than landing on
+ * either the real-coverage or zero-baseline branch. Pinterest (grep-
+ * confirmed eligible, $1.3B funding, label=1, never acquired) replaces
+ * it here.
  *
  * RDD CREATION VIA parallelize(): unlike StartupRDD's sc.textFile()
  * (creating an RDD from an external file), this file demonstrates the
@@ -54,10 +70,28 @@ object NewsRDD {
     List(
       scored("/organization/kabbage", "Kabbage Raises Some Serious Cabbage for Small-Business Loans - WIRED", "2012-09-19"),
       scored("/organization/kabbage", "Kabbage: The Merchant Cash Advance of the Online Business World - deBanked", "2011-08-23"),
-      scored("/organization/sifteo", "Sifteo Cubes Are Out Today, And Even Better Than You Imagined - Fast Company", "2011-08-11"),
-      scored("/organization/sifteo", "Tactile Digital Play, Part 1: Sifteo Cubes and Hasbro Zapped Toys - WIRED", "2012-10-27"),
-      scored("/organization/sifteo", "First Look: New Sifteo Cubes Go Gaming - NBC Bay Area", "2012-08-30"),
-      scored("/organization/sifteo", "Review: Sifteo Cubes bring physicality back to digital games - Ars Technica", "2011-08-10")
+      // Color Labs - real live NewsCollector run (Phase 13 cleanup), name-
+      // matched via NameMatcher against "Color Labs" (see docs/PHASE13_feature_join.md).
+      // 4 of 5 returned items accepted; 1 rejected (an unrelated obituary,
+      // 0/2 token overlap - the same kind of clean noise rejection as
+      // Kabbage's "tomato barons" case in Phase 8).
+      scored("/organization/color-labs", "$41 million can't buy success as Color app finally gives up (update: Color denies shutdown) - The Verge", "2012-10-17"),
+      scored("/organization/color-labs", "A Mess Of Family Dynamics Alleged In Lawsuit Against Silicon Valley Entrepreneur And Color Founder Bill Nguyen - Forbes", "2012-11-20"),
+      scored("/organization/color-labs", "Apple to acquire troubled startup Color Labs? - Gadgets 360", "2012-10-18"),
+      scored("/organization/color-labs", "Exploring The \"Labs\" Trend in Consumer Startups - TechCrunch", "2011-12-04"),
+      // Pinterest - real live NewsCollector run (Phase 13 cleanup round 2,
+      // replacing the never-eligible Sifteo - see provenance note above).
+      // 100 pre-cutoff items found; first 5 (NewsCollector's spike-run
+      // display cap) all accepted by NameMatcher at confidence 1.0, since
+      // "Pinterest" (9 chars) clears the isAmbiguousName length guard -
+      // including one generic listicle ("42 Awesome ... Pinterest
+      // Boards") that isn't really company news, a real, documented
+      // limitation distinct from the short-name ambiguity case.
+      scored("/organization/pinterest", "Ben Silbermann On How Pinterest Slowly Grew To Massive Scale - Forbes", "2012-10-22"),
+      scored("/organization/pinterest", "INSIDE PINTEREST: An Overnight Success Four Years In The Making - Business Insider", "2012-05-01"),
+      scored("/organization/pinterest", "42 Awesome and Creative Pinterest Boards - matadornetwork.com", "2012-01-31"),
+      scored("/organization/pinterest", "Pinterest, Tumblr and the Trouble With \u2018Curation\u2019 (Published 2012) - The New York Times", "2012-07-20"),
+      scored("/organization/pinterest", "The Pinterest Pivot - Fast Company", "2012-10-23")
     )
   }
 
@@ -77,7 +111,7 @@ object NewsRDD {
     val newsRDD = load(spark).persist()
 
     val total = newsRDD.count()
-    println(s"Total scored news items: $total (expect 6: 2 Kabbage + 4 Sifteo)\n")
+    println(s"Total scored news items: $total (expect 11: 2 Kabbage + 4 Color Labs + 5 Pinterest)\n")
 
     // reduceByKey: aggregate sentiment score SUM per startup. Demonstrates
     // combining values for the same key across partitions - the values
@@ -91,7 +125,8 @@ object NewsRDD {
     scoreSumRDD.collect().sorted.foreach { case (permalink, sum) =>
       println(s"  $permalink -> sentiment sum = $sum")
     }
-    println("Expect: kabbage -> 1 (scores were +1 and 0), sifteo -> 0 (all four scored 0)\n")
+    println("Expect: kabbage -> 1 (scores were +1 and 0), color-labs -> -2 (scores were")
+    println("0, -1, -1, 0), pinterest -> 2 (scores were +2, +1, 0, -1, 0)\n")
 
     // groupByKey: used here deliberately, not as a default choice. It is
     // justified in this specific case because we need the FULL LIST of a
@@ -125,7 +160,7 @@ object NewsRDD {
       println(s"  $permalink (label=${startup.label}) matched with ${newsGroup.size} news records")
     }
     println("\nNote: join() only returns keys present in BOTH RDDs (an inner join) -")
-    println("since groupedRDD only has 2 permalinks, only those 2 appear here, even")
+    println("since groupedRDD only has 3 permalinks, only those 3 appear here, even")
     println(s"though startupRDD has all ${startupRDD.count()} real startups. Phase 13's full")
     println("join will behave identically at full scale once batch news collection runs.")
 

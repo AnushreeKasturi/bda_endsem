@@ -1,10 +1,10 @@
 # Phase 7 — News Collection
 
-**Status:** Feasibility spike run (via web search as a proxy — see caveat
-below). `NewsCollector.scala` written, compiled, and its parsing logic
-verified against a realistic captured RSS sample. **The live network call
-against Google News RSS has NOT been tested** — that must happen on your
-machine, since this development environment cannot reach `news.google.com`.
+**Status:** Complete and verified with a real live test. Feasibility spike
+run twice: first via web search as a proxy (see below — this prediction
+turned out to be overly pessimistic), then via the actual
+`NewsCollector.scala` against live Google News RSS, which is the result
+that matters and is documented under "Live test results" below.
 
 ---
 
@@ -43,27 +43,49 @@ independent signal. This doesn't invalidate the experiment — it's a
 legitimate, defensible thing to discuss when interpreting Experiment 3/4
 results later.
 
-## Scope decision
+## Live test results — actual, not predicted
 
-Given this, attempting news collection across all 22,075 eligible startups
-is not a good use of time — most will return zero or near-zero results,
-and Google News RSS is not documented as rate-limit-friendly at that
-volume for a single student project.
+Run against three companies spanning funding scale (`sbt "runMain
+com.startupsurvival.NewsCollector \"Kabbage\" \"Sifteo\" \"Instructure\""`):
 
-**Recommendation: scope news collection to a subset** — e.g. the top
-300-500 startups by `funding_total_usd` and/or `funding_rounds` within the
-eligible population. This is:
-- More feasible (manageable request volume, faster to debug)
-- More defensible in the report (a startup with $50M raised across 4
-  rounds is far more likely to have discoverable historical coverage than
-  one with $200K and one round — scoping to well-funded startups is
-  scoping toward where the signal can actually exist)
-- Still large enough to run all 4 experiments meaningfully on the
-  Financial+Sentiment feature set for that subset, while Financial-only
-  can still use the full 22,075
+| Company | Funding scale | Pre-cutoff items returned | Dates correct? |
+|---|---|---|---|
+| Kabbage | Larger (~$50M+) | 6 | Yes — all 2011-2012 |
+| Sifteo | Smaller (~$9M) | 10 | Yes — all 2011-2012 |
+| Instructure | Mid (~$30M+) | 8 | Yes — all 2011-2012 |
 
-This subset size is not final — revisit once the live RSS test (below)
-shows real yield numbers.
+**This meaningfully overrides the pessimistic prediction made earlier in
+this document from the web-search proxy test.** Sifteo — deliberately
+chosen as the "hard case" because a web-search proxy suggested it had
+almost no real coverage — returned 10 genuine, relevant, correctly-dated
+articles via the live Google News RSS endpoint. The `before:`/`after:`
+date operators are confirmed working correctly: every single date across
+all 26 returned items fell inside the requested 2011-01-01 to 2013-01-01
+window.
+
+**Conclusion: Google News RSS's own archive is meaningfully deeper than
+what surfaces through general web search ranking.** This is the actual,
+verified finding — the proxy-test prediction earlier in this document was
+wrong and is superseded by this live result.
+
+### A data-quality note for Phase 8
+
+One returned Kabbage item — *"The tomato barons of the occupied Western
+Sahara"* — is a clear false match (likely a substring collision on
+"cabbage"). Real evidence that `NameMatcher.scala`'s
+`news_match_confidence` scoring needs to filter this kind of noise, not
+trust every RSS result blindly. Keep this example as a concrete test case
+when building Phase 8.
+
+## Scope decision — revised
+
+Given real yields (6-10 relevant items per company, even for a smaller
+startup), restricting collection to only the top 300-500 best-funded
+startups is now judged **too conservative**. Revised plan: attempt
+collection across a substantially larger slice of the eligible population
+(the exact size depends on request-rate practicality, to be determined
+once a larger batch run is timed in Phase 10) rather than pre-emptively
+narrowing to only the largest, best-known companies.
 
 ## `NewsCollector.scala` — design and verification
 
@@ -137,8 +159,11 @@ already does as a safety net regardless).
 
 ## Next
 
+Phase 7 is complete — live collection confirmed working, date-filtering
+confirmed accurate, one real noise example captured for Phase 8 to handle.
+
 **Phase 8 — News cleaning and startup-name matching**, building
-`NameMatcher.scala` to connect whatever headlines Phase 7 actually
-retrieves to the correct `permalink` in the eligible dataset, with the
-`news_match_confidence` methodology specified in the original project
-brief.
+`NameMatcher.scala` to connect retrieved headlines to the correct
+`permalink`, with the `news_match_confidence` methodology specified in the
+original project brief. The Kabbage/"tomato barons" false match from this
+phase is a concrete test case to validate the matcher against.

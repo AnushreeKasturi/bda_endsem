@@ -68,8 +68,10 @@ object Aggregation {
     }
 
     println("\nExpect these to match Phase 10's hand-verified plain-Scala results exactly:")
-    println("  kabbage: newsCount=2, positiveRatio=0.5, averageSentiment=0.5, sentimentTrend=Some(1.0)")
-    println("  sifteo:  newsCount=4, all-neutral, averageSentiment=0.0, sentimentTrend=Some(0.0)")
+    println("  kabbage:     newsCount=2, positiveRatio=0.5, averageSentiment=0.5, sentimentTrend=Some(1.0)")
+    println("  color-labs:  newsCount=4, positiveRatio=0.0 (1 pos term but net-0 headline),")
+    println("               negativeRatio=0.5 (2 of 4 headlines net-negative), averageSentiment=-0.5")
+    println("  pinterest:   newsCount=5, positiveRatio=0.4, negativeRatio=0.2, averageSentiment=0.4")
 
     spark.stop()
   }

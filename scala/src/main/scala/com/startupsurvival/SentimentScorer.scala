@@ -181,10 +181,14 @@ object SentimentScorer {
     // The project brief's own worked example, verified below.
     val briefExample = "Startup X raises major funding and expands into new markets"
 
-    // Real headlines captured live from Phase 7 (Kabbage, Sifteo).
+    // Real headlines captured live from Phase 7/13 (Kabbage, Color Labs, Pinterest).
     val realHeadlines = List(
       "Kabbage Raises Some Serious Cabbage for Small-Business Loans - WIRED",
-      "Sifteo Cubes Are Out Today, And Even Better Than You Imagined - Fast Company",
+      "$41 million can't buy success as Color app finally gives up (update: Color denies shutdown) - The Verge",
+      "A Mess Of Family Dynamics Alleged In Lawsuit Against Silicon Valley Entrepreneur And Color Founder Bill Nguyen - Forbes",
+      "Apple to acquire troubled startup Color Labs? - Gadgets 360",
+      "Ben Silbermann On How Pinterest Slowly Grew To Massive Scale - Forbes",
+      "Pinterest, Tumblr and the Trouble With \u2018Curation\u2019 (Published 2012) - The New York Times",
       "Startup shuts down after failing to raise sufficient funding, layoffs follow",
       "Company announces bankruptcy amid mounting losses and investor lawsuit"
     )

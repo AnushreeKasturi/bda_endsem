@@ -197,19 +197,70 @@ object FeatureExtractor {
       buildScored("First Look: New Sifteo Cubes Go Gaming - NBC Bay Area", "2012-08-30"),
       buildScored("Review: Sifteo Cubes bring physicality back to digital games - Ars Technica", "2011-08-10")
     )
+    // NOTE (Phase 13 cleanup round 2): Sifteo was found to be genuinely
+    // ineligible (acquired by 3D Robotics in 2014; excluded under Phase
+    // 2's R2 rule - confirmed absent from labeled_eligible_startups.csv
+    // via grep). Its name-matching/sentiment-scoring results above remain
+    // valid as a Phase 9/10 demonstration (eligibility was never required
+    // for that), but it is NOT used in Phase 13's join demo - see
+    // NewsRDD.scala and docs/PHASE13_feature_join.md, where Pinterest
+    // replaces it.
 
+    // Color Labs - real live NewsCollector run added in the Phase 13
+    // cleanup (see docs/PHASE13_feature_join.md), replacing the old
+    // Instructure placeholder that had no real headline text backing it.
+    // Real, eligible startup: $41M funding, label=0 (closed). 4 of 5
+    // returned items accepted by NameMatcher; 1 rejected as noise.
+    val colorLabsNews = List(
+      buildScored("$41 million can't buy success as Color app finally gives up (update: Color denies shutdown) - The Verge", "2012-10-17"),
+      buildScored("A Mess Of Family Dynamics Alleged In Lawsuit Against Silicon Valley Entrepreneur And Color Founder Bill Nguyen - Forbes", "2012-11-20"),
+      buildScored("Apple to acquire troubled startup Color Labs? - Gadgets 360", "2012-10-18"),
+      buildScored("Exploring The \"Labs\" Trend in Consumer Startups - TechCrunch", "2011-12-04")
+    )
+
+    // Pinterest - real live NewsCollector run (Phase 13 cleanup round 2),
+    // replacing Sifteo in the join-eligible sample. Real, eligible
+    // startup: $1.3B funding, label=1 (operating), never acquired. 100
+    // pre-cutoff items found; first 5 (NewsCollector's display cap) all
+    // accepted at confidence 1.0 - "Pinterest" clears the isAmbiguousName
+    // length guard, including one generic listicle headline that isn't
+    // really company news, a documented NameMatcher limitation.
+    val pinterestNews = List(
+      buildScored("Ben Silbermann On How Pinterest Slowly Grew To Massive Scale - Forbes", "2012-10-22"),
+      buildScored("INSIDE PINTEREST: An Overnight Success Four Years In The Making - Business Insider", "2012-05-01"),
+      buildScored("42 Awesome and Creative Pinterest Boards - matadornetwork.com", "2012-01-31"),
+      buildScored("Pinterest, Tumblr and the Trouble With \u2018Curation\u2019 (Published 2012) - The New York Times", "2012-07-20"),
+      buildScored("The Pinterest Pivot - Fast Company", "2012-10-23")
+    )
+
+    // 1-800-DOCTORS - a REAL, eligible startup (label=1, $1.75M funding,
+    // confirmed via grep against labeled_eligible_startups.csv in the
+    // Phase 13 cleanup) whose live NewsCollector run returned 3 items,
+    // ALL correctly rejected by NameMatcher (0/3 token overlap - generic
+    // hospital press-release noise, not genuinely about the company).
+    // This is a real, not synthetic, verification of the zero-coverage
+    // baseline path - distinct from a made-up placeholder permalink.
     val emptyNews = List.empty[ScoredNewsRecord]
 
     println("=== Kabbage sentiment features (2 real accepted articles) ===")
     val kabbageFeatures = extractSentimentFeatures("/organization/kabbage", kabbageNews, cutoff)
     println(kabbageFeatures)
 
-    println("\n=== Sifteo sentiment features (4 real accepted articles) ===")
+    println("\n=== Sifteo sentiment features (4 real accepted articles - Phase 9/10")
+    println("    demonstration only; NOT part of Phase 13's join, see note above) ===")
     val sifteoFeatures = extractSentimentFeatures("/organization/sifteo", sifteoNews, cutoff)
     println(sifteoFeatures)
 
-    println("\n=== No-coverage startup (0 articles - the common case per Phase 7) ===")
-    val emptyFeatures = extractSentimentFeatures("/organization/nocoverage", emptyNews, cutoff)
+    println("\n=== Color Labs sentiment features (4 real accepted articles) ===")
+    val colorLabsFeatures = extractSentimentFeatures("/organization/color-labs", colorLabsNews, cutoff)
+    println(colorLabsFeatures)
+
+    println("\n=== Pinterest sentiment features (5 real accepted articles) ===")
+    val pinterestFeatures = extractSentimentFeatures("/organization/pinterest", pinterestNews, cutoff)
+    println(pinterestFeatures)
+
+    println("\n=== 1-800-DOCTORS: real eligible startup, real zero-coverage case ===")
+    val emptyFeatures = extractSentimentFeatures("/organization/1-800-doctors", emptyNews, cutoff)
     println(emptyFeatures)
   }
 }
