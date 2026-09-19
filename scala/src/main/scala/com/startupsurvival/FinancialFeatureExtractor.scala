@@ -97,6 +97,7 @@ object FinancialFeatureExtractor {
 
     FinancialFeatures(
       permalink = startup.permalink,
+      label = startup.label,
       startupAgeYears = ageYears,
       totalFundingUsd = totalFundingUsd,
       fundingRoundCount = fundingRoundCount,

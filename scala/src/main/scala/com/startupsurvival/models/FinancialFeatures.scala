@@ -15,6 +15,7 @@ package com.startupsurvival.models
  */
 final case class FinancialFeatures(
     permalink: String,
+    label: Int,
     startupAgeYears: Double,
     totalFundingUsd: Option[Double],
     fundingRoundCount: Option[Int],
